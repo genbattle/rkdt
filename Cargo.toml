@@ -1,0 +1,4 @@
+[package]
+name = "rkdt"
+version = "0.1.0"
+authors = ["Nick Sarten <gen.battle@gmail.com>"]
