@@ -1,8 +1,8 @@
 pub mod rkdt {
     trait Point<T> {
-        // Returns the number of dimensions, T
+        // Returns the number of dimensions, k
         fn size(&self) -> usize;
-        // For pos = (0 to T-1) returns a value
+        // For pos = (0 to k-1) returns a value
         fn at(&self, pos: usize) -> T;
     }
 
@@ -42,7 +42,7 @@ pub mod rkdt {
 
 
 #[test]
-fn it_worTs() {
+fn it_works() {
     let v = vec!((3.0, 1.0), (1.0, 3.0), (1.3, 1.4), (1.2, 0.1,), (8.4, 6.7), (1.2, 11.0));
-    let Tdt = TDTree::from_slice();
+    let kdt = TDTree::from_slice(v[..]);
 }
