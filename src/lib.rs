@@ -1,4 +1,4 @@
-pub mod rTdt {
+pub mod rkdt {
     trait Point<T> {
         // Returns the number of dimensions, T
         fn size(&self) -> usize;
