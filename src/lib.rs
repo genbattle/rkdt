@@ -1,6 +1,6 @@
 pub mod rkdt {
-    pub trait Point {
-        type V: PartialOrd + PartialEq + Copy;
+    pub trait Point: PartialEq + Clone + Debug {
+        type V: PartialOrd + PartialEq + Copy + Debug;
         // Returns the number of dimensions, k
         fn size(&self) -> usize;
         // For pos = (0 to k-1) returns a value
@@ -36,6 +36,14 @@ pub mod rkdt {
         }
     }
     
+    use std::fmt::{Debug, Formatter, Error};
+    impl Debug for Vec2 {
+        fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
+            try!(fmt.write_fmt(format_args!("({:?},{:?})", self.x, self.y)));
+            return Ok(());
+        }
+    }
+    
     #[derive(Clone, Copy)]
     pub struct Vec3 {
         pub x: f32,
@@ -66,15 +74,22 @@ pub mod rkdt {
             self.x == other.x && self.y == other.y && self.z == other.z
         }
     }
-
-    // TODO: Try to eliminate Boxes by introducing more static parmeters as in from_slice()?
-    pub struct Node<T: Point + PartialEq + Clone> {
-        value: T,
-        left: Option<Box<Node<T>>>,
-        right: Option<Box<Node<T>>>
+    
+    impl Debug for Vec3 {
+        fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
+            try!(fmt.write_fmt(format_args!("({:?},{:?},{:?})", self.x, self.y, self.z)));
+            return Ok(());
+        }
     }
 
-    impl<T: Point + PartialEq + Clone> Node<T> {
+    // TODO: Try to eliminate Boxes by introducing more static parmeters as in from_slice()?
+    pub struct Node<T: Point> {
+        pub value: T,
+        pub left: Option<Box<Node<T>>>,
+        pub right: Option<Box<Node<T>>>
+    }
+
+    impl<T: Point> Node<T> {
         pub fn new(val: T, l: Option<Box<Node<T>>>, r: Option<Box<Node<T>>>) -> Node<T> {
             Node{value: val, left: l, right: r}
         }
@@ -87,6 +102,28 @@ pub mod rkdt {
         pub fn insert(&mut self, value: &T) {
             self.insert_node(value, 0, value.size());
         }
+        
+        // Internal helper for printing
+        /*fn format_node(&self, fmt: &mut Formatter) -> Result<(), Error> {
+            try!(fmt.write_str("["));
+            try!(fmt.write_fmt(format_args!("{:?}", self.value)));
+            match self.left {
+                Some(ref n) => {
+                    try!(fmt.write_str(", "));
+                    try!(self.format_node(n, fmt));
+                },
+                None => ()
+            }
+            match self.right {
+                Some(ref n) => {
+                    try!(fmt.write_str(", "));
+                    try!(self.format_node(n, fmt));
+                },
+                None => ()
+            }
+            try!(fmt.write_str("]"));
+            return ();
+        }*/
         
         fn insert_node(&mut self, value: &T, axis: usize, k: usize) {
             if value.at(axis) < self.value.at(axis) {
@@ -101,6 +138,7 @@ pub mod rkdt {
                 }
             }
         }
+        
         // TODO: implement range search
         // TODO: implement k-nearest-neighbour search
         // TODO: implement search and delete
@@ -108,15 +146,39 @@ pub mod rkdt {
         // TODO: implement kd-tree-based kmeans
     }
     
+    impl<T: Point> Debug for Node<T> {
+        // Pretty print the k-d tree to the console
+        fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
+            try!(fmt.write_str("["));
+            try!(fmt.write_fmt(format_args!("{:?}", self.value)));
+            match self.left {
+                Some(ref n) => {
+                    try!(fmt.write_str(", "));
+                    try!(n.fmt(fmt));
+                },
+                None => ()
+            }
+            match self.right {
+                Some(ref n) => {
+                    try!(fmt.write_str(", "));
+                    try!(n.fmt(fmt));
+                },
+                None => ()
+            }
+            try!(fmt.write_str("]"));
+            return Ok(());
+        }
+    }
+    
     /*
     Build a k-d tree from a slice of points. Algorithm taken from:
     http://en.wikipedia.org/wiki/K-d_tree
     */
-    pub fn from_slice<T: Point + PartialEq + Clone>(points: &mut [T]) -> Option<Box<Node<T>>> {
+    pub fn from_slice<T: Point>(points: &mut [T]) -> Option<Box<Node<T>>> {
         create_nodes(points, 0)
     }
     
-    fn create_nodes<T: Point + PartialEq + Clone>(points: &mut [T], depth: usize) -> Option<Box<Node<T>>> {
+    fn create_nodes<T: Point>(points: &mut [T], depth: usize) -> Option<Box<Node<T>>> {
         if points.is_empty() {
             return None;
         }
@@ -138,8 +200,12 @@ pub mod rkdt {
 }
 
 #[test]
-fn it_works() {
+fn test_construction() {
     use rkdt::Vec2;
-    let mut v = vec!(Vec2{x: 3.0, y: 1.0}, Vec2{x: 3.0, y: 1.0}, Vec2{x: 3.0, y: 1.0}, Vec2{x: 3.0, y: 1.0}, Vec2{x: 3.0, y: 1.0}, Vec2{x: 3.0, y: 1.0});
-    let kdt = rkdt::from_slice(&mut v[..]);
+    let mut v = vec!(Vec2{x: 2.0, y: 3.0}, Vec2{x: 5.0, y: 4.0}, Vec2{x: 9.0, y: 6.0}, Vec2{x: 4.0, y: 7.0}, Vec2{x: 8.0, y: 1.0}, Vec2{x: 7.0, y: 2.0});
+    let kdt = rkdt::from_slice(&mut v[..]).unwrap();
+    println!("{:?}", kdt);
+    assert!(kdt.value == v[6]);
 }
+
+// TODO: Test insert, search, etc.
