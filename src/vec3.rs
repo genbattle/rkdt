@@ -14,9 +14,9 @@ impl super::Point for Vec3 {
     
     fn at(&self, pos: usize) -> f32 {
         match pos {
-            1 => self.x,
-            2 => self.y,
-            3 => self.z,
+            0 => self.x,
+            1 => self.y,
+            2 => self.z,
             _ => 0.0
         }
     }

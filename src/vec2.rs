@@ -13,8 +13,8 @@ impl super::Point for Vec2 {
     
     fn at(&self, pos: usize) -> f32 {
         match pos {
-            1 => self.x,
-            2 => self.y,
+            0 => self.x,
+            1 => self.y,
             _ => 0.0
         }
     }
