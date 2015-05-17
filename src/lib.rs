@@ -4,15 +4,24 @@ mod vec3;
 pub use vec2::Vec2;
 pub use vec3::Vec3;
 
+/*
+The `Point` trait outlines the properties that a value must provide to be indexed in the k-d tree.
+See the `Vec2` and `Vec3` structs for an example implementation.
+*/
 pub trait Point: PartialEq + Clone + Debug {
     type V: PartialOrd + PartialEq + Copy + Debug;
     // Returns the number of dimensions, k
     fn size(&self) -> usize;
-    // For pos = (0 to k-1) returns a value
+    // For pos = (0 to k-1) returns a sub-value for this point.
     fn at(&self, pos: usize) -> Self::V;
 }
 
-// TODO: Try to eliminate Boxes by introducing more static parmeters as in from_slice()?
+/*
+The `Node` struct encompasses a single k-d tree node, storing a value as well as optional 
+heap-pointers to the next subnodes in the tree (`left` and `right`).
+
+TODO: Try to eliminate Boxes by introducing more static parmeters as in from_slice()?
+*/
 pub struct Node<T: Point> {
     pub value: T,
     pub left: Option<Box<Node<T>>>,
@@ -32,28 +41,6 @@ impl<T: Point> Node<T> {
     pub fn insert(&mut self, value: &T) {
         self.insert_node(value, 0, value.size());
     }
-    
-    // Internal helper for printing
-    /*fn format_node(&self, fmt: &mut Formatter) -> Result<(), Error> {
-        try!(fmt.write_str("["));
-        try!(fmt.write_fmt(format_args!("{:?}", self.value)));
-        match self.left {
-            Some(ref n) => {
-                try!(fmt.write_str(", "));
-                try!(self.format_node(n, fmt));
-            },
-            None => ()
-        }
-        match self.right {
-            Some(ref n) => {
-                try!(fmt.write_str(", "));
-                try!(self.format_node(n, fmt));
-            },
-            None => ()
-        }
-        try!(fmt.write_str("]"));
-        return ();
-    }*/
     
     fn insert_node(&mut self, value: &T, axis: usize, k: usize) {
         if value.at(axis) < self.value.at(axis) {
@@ -101,14 +88,16 @@ impl<T: Point> Debug for Node<T> {
     }
 }
 
+// Create a new k-d tree from a slice of point values.
+pub fn from_slice<T: Point>(points: &[T]) -> Option<Box<Node<T>>> {
+    let mut points_clone = points.to_vec();
+    create_nodes(&mut points_clone[..], 0)
+}
+
 /*
 Build a k-d tree from a slice of points. Algorithm taken from:
 http://en.wikipedia.org/wiki/K-d_tree
 */
-pub fn from_slice<T: Point>(points: &mut [T]) -> Option<Box<Node<T>>> {
-    create_nodes(points, 0)
-}
-
 fn create_nodes<T: Point>(points: &mut [T], depth: usize) -> Option<Box<Node<T>>> {
     if points.is_empty() {
         return None;
@@ -131,10 +120,14 @@ fn create_nodes<T: Point>(points: &mut [T], depth: usize) -> Option<Box<Node<T>>
 
 #[test]
 fn test_construction() {
-    let mut v = vec!(Vec2{x: 2.0, y: 3.0}, Vec2{x: 5.0, y: 4.0}, Vec2{x: 9.0, y: 6.0}, Vec2{x: 4.0, y: 7.0}, Vec2{x: 8.0, y: 1.0}, Vec2{x: 7.0, y: 2.0});
-    let kdt = from_slice(&mut v[..]).unwrap();
+    let v = vec!(Vec2{x: 2.0, y: 3.0}, Vec2{x: 5.0, y: 4.0}, Vec2{x: 9.0, y: 6.0}, 
+            Vec2{x: 4.0, y: 7.0}, Vec2{x: 8.0, y: 1.0}, Vec2{x: 7.0, y: 2.0});
+    let kdt = from_slice(&v[..]).unwrap();
     println!("{:?}", kdt);
-    assert!(kdt.value == v[6]);
+    println!("{:?} == {:?}", kdt.value, v[5]);
+    assert!(kdt.value == v[5]);
+    // This is just an easy way to check the tree is as expected without walking the whole thing.
+    assert!(format!("{:?}", kdt) == "[(7,2), [(5,4), [(2,3)], [(4,7)]], [(9,6), [(8,1)]]]");
 }
 
 // TODO: Test insert, search, etc.
