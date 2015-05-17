@@ -29,19 +29,17 @@ pub struct Node<T: Point> {
 }
 
 impl<T: Point> Node<T> {
-    pub fn new(val: T, l: Option<Box<Node<T>>>, r: Option<Box<Node<T>>>) -> Node<T> {
-        Node{value: val, left: l, right: r}
-    }
-    
+    // Get the node's Point value
     pub fn value(&self) -> &T {
         &self.value
     }
     
-    // insert a new value into the tree
+    // Insert a new value into the tree
     pub fn insert(&mut self, value: &T) {
         self.insert_node(value, 0, value.size());
     }
     
+    // Recursively search for a position to insert a new value into the tree
     fn insert_node(&mut self, value: &T, axis: usize, k: usize) {
         if value.at(axis) < self.value.at(axis) {
             match self.left {
