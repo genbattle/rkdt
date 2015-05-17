@@ -119,7 +119,7 @@ fn create_nodes<T: Point>(points: &mut [T], depth: usize) -> Option<Box<Node<T>>
 }
 
 #[test]
-fn test_construction() {
+fn test_from_slice() {
     let v = vec!(Vec2{x: 2.0, y: 3.0}, Vec2{x: 5.0, y: 4.0}, Vec2{x: 9.0, y: 6.0}, 
             Vec2{x: 4.0, y: 7.0}, Vec2{x: 8.0, y: 1.0}, Vec2{x: 7.0, y: 2.0});
     let kdt = from_slice(&v[..]).unwrap();
