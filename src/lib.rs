@@ -59,6 +59,23 @@ impl<T: Point> Node<T> {
         }
     }
     
+    /*
+    Calculate k-means for k-clusters based on the current k-d tree.
+    
+    Algorithm inspired by
+    Kanungo, Tapas, et al. "An efficient k-means clustering algorithm: Analysis and 
+    implementation." _Pattern Analysis and Machine Intelligence, IEEE Transactions on_ 
+    24.7 (2002): 881-892.
+    
+    In the original article the authors construct a tree with each level split on the longest 
+    dimension using the midpoint of the dimension. This implementation uses a "standard" k-d tree, 
+    and so is split along alternating dimensions at the median, a suboptimal approach according to
+    the original paper.
+    */
+    pub fn kmeans(&self, k: usize) -> Vec<T> {
+        return Vec::new();
+    }
+    
     // TODO: implement range search
     // TODO: implement k-nearest-neighbour search
     // TODO: implement search and delete
