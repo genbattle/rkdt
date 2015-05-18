@@ -39,14 +39,19 @@ impl<T: Point> Node<T> {
         self.insert_node(value, 0, value.size());
     }
     
-    // Recursively search for a position to insert a new value into the tree
+    /*
+    Recursively search for a position to insert a new value into the tree.
+    Warning: May unbalance the tree
+    */
     fn insert_node(&mut self, value: &T, axis: usize, k: usize) {
-        if value.at(axis) < self.value.at(axis) {
+        if *value == self.value {
+            return;
+        } else if value.at(axis) < self.value.at(axis) {
             match self.left {
                 Some(ref mut n) => n.insert_node(value, (axis + 1) % k, k),
                 None => self.left = Some(Box::new(Node{value: value.clone(), left: None, right: None}))
             }
-        } else if value.at(axis) > self.value.at(axis) {
+        } else if value.at(axis) >= self.value.at(axis) {
             match self.right {
                 Some(ref mut n) => n.insert_node(value, (axis + 1) % k, k),
                 None => self.right = Some(Box::new(Node{value: value.clone(), left: None, right: None}))
@@ -126,6 +131,20 @@ fn test_from_slice() {
     assert!(kdt.value == v[5]);
     // This is just an easy way to check the tree is as expected without walking the whole thing.
     assert!(format!("{:?}", kdt) == "[(7,2), [(5,4), [(2,3)], [(4,7)]], [(9,6), [(8,1)]]]");
+}
+
+#[test]
+fn test_insert() {
+    let v = vec!(Vec2{x: 2.0, y: 3.0}, Vec2{x: 5.0, y: 4.0}, Vec2{x: 9.0, y: 6.0}, 
+            Vec2{x: 4.0, y: 7.0}, Vec2{x: 8.0, y: 1.0}, Vec2{x: 7.0, y: 2.0});
+    let mut kdt = from_slice(&v[..]).unwrap();
+    println!("{:?}", kdt);
+    kdt.insert(&Vec2{x: 1.0, y: 4.0});
+    println!("after insert: {:?}", kdt);
+    assert!(format!("{:?}", kdt) == "[(7,2), [(5,4), [(2,3)], [(4,7), [(1,4)]]], [(9,6), [(8,1)]]]");
+    kdt.insert(&Vec2{x: 5.0, y: 9.0});
+    println!("after second insert: {:?}", kdt);
+    assert!(format!("{:?}", kdt) == "[(7,2), [(5,4), [(2,3)], [(4,7), [(1,4)], [(5,9)]]], [(9,6), [(8,1)]]]");
 }
 
 // TODO: Test insert, search, etc.
